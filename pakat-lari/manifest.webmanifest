@@ -1,0 +1,14 @@
+{
+  "name": "WEH, PAKAT LARI — Disini Elit Dilahirkan",
+  "short_name": "Pakat Lari",
+  "description": "Disini Elit Dilahirkan — running life simulator set in Pekan Runners.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#050a1a",
+  "theme_color": "#0a1230",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

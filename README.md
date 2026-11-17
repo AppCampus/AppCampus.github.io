@@ -9,3 +9,8 @@ Laman: https://appcampus.github.io/pustaka/
 - `index.html`: membawa pelawat terus ke `/pustaka/`
 
 Powered by IS
+
+## WEH, PAKAT LARI
+Game simulasi larian 3D (landscape). Laman: https://appcampus.github.io/pakat-lari/
+
+- `pakat-lari/`: hasil build statik (Vite, base `/pakat-lari/`). Source asal dalam projek `pace-life`.
