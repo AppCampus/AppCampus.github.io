@@ -1,8 +1,8 @@
 // Weh, Pakat Lari service worker — offline app shell (network-first for navigation, cache-first for assets)
-const CACHE = 'pakat-lari-v3';
+const CACHE = 'pakat-lari-v5';
 // Paths relative to the SW location so the app works at / or a sub-path (e.g. GitHub Pages /pakat-lari/).
 const BASE = new URL('./', self.location).pathname;
-const SHELL = ['', 'index.html', 'manifest.webmanifest', 'icon.svg'].map((p) => BASE + p);
+const SHELL = ['', 'index.html', 'manifest.webmanifest', 'icon-192.png'].map((p) => BASE + p);
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
