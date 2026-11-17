@@ -355,6 +355,23 @@ const NAR={
   'Orang dewasa yang baik takkan suruh budak-budak simpan rahsia pasal sentuhan atau gambar. Kalau ada yang suruh, tu tanda bahaya!',
   'Kat internet pulak, jangan sekali-kali hantar gambar diri kat orang yang awak tak kenal. Kalau ada yang minta, terus bagitau orang dewasa. Rahsia tak baik mesti bagitau, dan awak takkan kena marah.']
 };
+
+/* Soalan kuiz versi suara (santai) */
+const QS={
+ minda0:'Soalan dia, kalau awak rasa marah, salah ke? Pilihan A. Ya, tak boleh marah langsung. Pilihan B. Tak salah, marah tu normal. Yang penting, macam mana kita uruskan.',
+ minda1:'Soalan dia, bila kita marah, apa benda pertama kena buat? Pilihan A. Jerit kuat-kuat. Pilihan B. Berhenti, dan tarik nafas. Pilihan C. Baling barang.',
+ minda2:'Soalan dia, yang mana satu bagus untuk otak sihat? Pilihan A. Main telefon sampai tengah malam. Pilihan B. Tidur cukup, dan bersukan. Pilihan C. Minum air manis selalu.',
+ minda3:'Soalan dia, minta tolong bila kita sedih tu, maknanya apa? Pilihan A. Kita lemah. Pilihan B. Kita berani.',
+ buli0:'Soalan dia, ejek kawan hari-hari tu, buli jenis apa? Pilihan A. Buli mulut. Pilihan B. Buli fizikal. Pilihan C. Bukan buli pun.',
+ buli1:'Soalan dia, kalau kena buli, apa awak patut buat? Pilihan A. Diam je, simpan sorang-sorang. Pilihan B. Balas, pukul balik. Pilihan C. Cakap berhenti, pergi dari situ, dan bagitau orang dewasa.',
+ buli2:'Soalan dia, apa yang wira buat? Pilihan A. Rakam video, lepas tu gelak. Pilihan B. Temankan kawan tu, dan bagitau cikgu.',
+ buli3:'Soalan dia, kalau dapat mesej jahat kat internet, awak patut buat apa? Pilihan A. Balas dengan mesej yang lagi jahat. Pilihan B. Jangan balas, simpan bukti, dan bagitau orang dewasa.',
+ badan0:'Soalan dia, bahagian sulit tu bahagian yang mana? Pilihan A. Tangan dan kaki. Pilihan B. Bahagian yang ditutup dengan seluar dalam, atau baju renang.',
+ badan1:'Soalan dia, sentuhan yang buat awak rasa takut dan keliru tu, sentuhan apa? Pilihan A. Sentuhan selamat. Pilihan B. Sentuhan tak selamat.',
+ badan2:'Soalan dia, apa tiga langkah selamat kita tadi? Pilihan A. Diam, tunggu, lupakan. Pilihan B. Cakap tak nak, lari, bagitau.',
+ badan3:'Soalan dia, ada orang cakap, jangan bagitau sesiapa pasal sentuhan ni. Awak patut buat apa? Pilihan A. Simpan rahsia tu. Pilihan B. Bagitau orang dewasa yang awak percaya.'
+};
+function introLine(title,t){return 'Hai adik-adik! Hari ni kita baca buku, '+title.replace(/[!.?]+$/,'')+'. Jom! '+t.replace(/^Hai adik-adik[!.]\s*/,'')}
 const PRAISE=['Yeay, betul! Pandainya awak!','Wah, terbaik! Betul tu!','Betul! Syabas, adik!','Pandai! Memang hebat!'];
 const RETRY=['Alamak, sikit lagi! Cuba lagi, okey?','Takpe takpe, cuba sekali lagi!','Hmm, bukan yang tu lah. Cuba lagi!'];
 const pick=a=>a[Math.random()*a.length|0];
@@ -404,7 +421,7 @@ function stopSpeak(){spkId++;if(SS)SS.cancel();AU.onended=AU.onerror=null;try{AU
 /* Audio rakaman (Yasmin/Osman). Fail disenaraikan dalam audio/senarai.json */
 const AU=new Audio();AU.preload='auto';let AUD=new Set();
 fetch('audio/senarai.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).then(j=>{AUD=new Set(j||[])}).catch(()=>{});
-const quizLine=(q,intro)=>(intro?'Yeay, dah habis baca! Terbaik! Okey, jom jawab kuiz. ':'Okey, jom jawab kuiz! ')+q.q+' '+q.a.map((a,i)=>'Pilihan '+'ABC'[i]+'. '+a+'.').join(' ');
+const quizLine=(q,intro)=>'Yeay, dah habis baca! Terbaik! Okey, jom jawab kuiz. '+(QS[cur.key]||(q.q+' '+q.a.map((a,i)=>'Pilihan '+'ABC'[i]+'. '+a+'.').join(' ')));
 const bookId=k=>k.replace(/(\d+)$/,(m,n)=>+n+1);
 function play(id,text,onEnd){
   if(!AUD.has(id))return speak(text,onEnd);
@@ -486,7 +503,7 @@ function readPage(then){
   const p=cur.pages[pi];if(!p)return;const sc=document.querySelector('.page');
   $('sayB').classList.add('on');$('sayB').textContent='⏹ Berhenti';sc&&sc.classList.add('talking');
   let txt=(NAR[cur.key]&&NAR[cur.key][pi])||plain(p.t);
-  if(pi===0)txt='Hai! Hari ni kita baca buku, '+cur.t.replace(/[!.?]+$/,'')+'. Jom! '+txt;
+  if(pi===0)txt=introLine(cur.t,txt);
   play(bookId(cur.key)+'-'+(pi+1),txt,()=>{sc&&sc.classList.remove('talking');$('sayB').classList.remove('on');$('sayB').textContent='🔊 Dengar';then&&then()});
 }
 $('sayB').onclick=()=>{ac();if($('sayB').classList.contains('on')){auto=false;$('autoBtn').classList.remove('on');stopSpeak();document.querySelector('.page')?.classList.remove('talking');$('sayB').classList.remove('on');$('sayB').textContent='🔊 Dengar';return}
