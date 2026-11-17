@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AppCampus · Bimbingan &amp; Kaunseling</title>
+<meta name="description" content="AppCampus: aplikasi pembelajaran interaktif Unit Bimbingan & Kaunseling untuk murid sekolah rendah.">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="icon" href="/icon-512.png">
+<meta name="theme-color" content="#7048e8">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Baloo 2',system-ui,sans-serif;color:#2b2d42;min-height:100vh;background:linear-gradient(180deg,#c5f6fa 0%,#fff9db 55%,#fffaf0 100%)}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px 40px}
+.hero{text-align:center}
+.logo{font-size:72px;display:inline-block;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+h1{margin:4px 0 0;font-size:42px;color:#5f3dc4;line-height:1}
+.sub{margin:6px 0 26px;font-size:18px;color:#495057}
+.grid{display:grid;gap:16px}
+@media(min-width:620px){.grid{grid-template-columns:1fr 1fr}}
+.app{display:block;text-decoration:none;color:#fff;border-radius:26px;padding:22px;box-shadow:0 8px 0 #0002,0 14px 30px #0001;transition:transform .2s;position:relative;overflow:hidden}
+.app:hover,.app:active{transform:translateY(-4px) rotate(-1deg)}
+.app .em{font-size:60px;line-height:1}
+.app h2{margin:8px 0 4px;font-size:26px;line-height:1.1}
+.app p{margin:0;font-size:16px;opacity:.95}
+.app .go{display:inline-block;margin-top:14px;background:#fff;color:#2b2d42;font-weight:800;border-radius:14px;padding:6px 16px}
+.a1{background:linear-gradient(135deg,#9775fa,#6741d9)}.a2{background:linear-gradient(135deg,#ff922b,#e8590c)}
+.tip{background:#fff;border-radius:20px;padding:14px 16px;margin-top:22px;box-shadow:0 6px 18px #0001;font-size:15px}
+footer{text-align:center;font-size:13px;color:#868e96;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="logo">🦉</div>
+    <h1>AppCampus</h1>
+    <p class="sub">Aplikasi interaktif Unit Bimbingan &amp; Kaunseling untuk murid sekolah rendah</p>
+  </div>
+  <div class="grid">
+    <a class="app a1" href="/pustaka/">
+      <div class="em">📚</div>
+      <h2>Pustaka Minda Ceria</h2>
+      <p>Perpustakaan digital bersuara: Minda Sihat, Stop Buli dan Badanku Milikku.</p>
+      <span class="go">Buka ➜</span>
+    </a>
+    <a class="app a2" href="/kaunselor/">
+      <div class="em">🎮</div>
+      <h2>Misi Kaunselor Cilik</h2>
+      <p>Permainan kuiz: padankan masalah murid dengan 4 Fokus Utama Perkhidmatan Bimbingan &amp; Kaunseling.</p>
+      <span class="go">Main ➜</span>
+    </a>
+  </div>
+  <div class="tip">📱 <b>Pasang di telefon:</b> buka laman ini, kemudian pilih <b>"Add to Home Screen"</b> atau <b>"Tambah ke Skrin Utama"</b> dari menu pelayar. AppCampus akan muncul seperti aplikasi biasa.</div>
+  <footer>Unit Bimbingan &amp; Kaunseling · AppCampus</footer>
+</div>
+</body>
+</html>
