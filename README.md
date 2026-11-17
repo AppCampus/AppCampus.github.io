@@ -1,14 +1,11 @@
-# AppCampus.github.io
+# Pustaka Minda Ceria
 
-Aplikasi interaktif Unit Bimbingan & Kaunseling untuk murid sekolah rendah.
+Perpustakaan digital bersuara Unit Bimbingan & Kaunseling untuk murid sekolah rendah:
+Minda Sihat, Stop Buli dan Badanku Milikku.
 
-Laman: https://appcampus.github.io
+Laman: https://appcampus.github.io/pustaka/
 
-| Folder | Aplikasi |
-|---|---|
-| `/` | Laman utama AppCampus |
-| `/pustaka/` | Pustaka Minda Ceria: perpustakaan digital bersuara (Minda Sihat, Stop Buli, Badanku Milikku) |
-| `/kaunselor/` | Misi Kaunselor Cilik: permainan 4 Fokus Utama Perkhidmatan Bimbingan & Kaunseling |
+- `pustaka/index.html`: aplikasi (satu fail HTML statik, tiada pelayan diperlukan)
+- `index.html`: membawa pelawat terus ke `/pustaka/`
 
-Semua aplikasi ialah fail HTML statik. Tiada pelayan atau pangkalan data diperlukan.
-Untuk kemas kini, tukar fail `index.html` dalam folder berkenaan dan commit ke branch `main`.
+Powered by IS
