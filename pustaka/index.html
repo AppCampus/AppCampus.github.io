@@ -400,7 +400,20 @@ function speak(text,onEnd){
     SS.speak(u)};
   setTimeout(nextPart,60);
 }
-function stopSpeak(){spkId++;if(SS)SS.cancel()}
+function stopSpeak(){spkId++;if(SS)SS.cancel();AU.onended=AU.onerror=null;try{AU.pause()}catch(e){}}
+/* Audio rakaman (Yasmin/Osman). Fail disenaraikan dalam audio/senarai.json */
+const AU=new Audio();AU.preload='auto';let AUD=new Set();
+fetch('audio/senarai.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).then(j=>{AUD=new Set(j||[])}).catch(()=>{});
+const quizLine=(q,intro)=>(intro?'Yeay, dah habis baca! Terbaik! Okey, jom jawab kuiz. ':'Okey, jom jawab kuiz! ')+q.q+' '+q.a.map((a,i)=>'Pilihan '+'ABC'[i]+'. '+a+'.').join(' ');
+const bookId=k=>k.replace(/(\d+)$/,(m,n)=>+n+1);
+function play(id,text,onEnd){
+  if(!AUD.has(id))return speak(text,onEnd);
+  stopSpeak();const my=spkId;let done=false;
+  const fin=()=>{if(done||my!==spkId)return;done=true;onEnd&&onEnd()};
+  const fb=()=>{if(done||my!==spkId)return;done=true;speak(text,onEnd)};
+  AU.onended=fin;AU.onerror=fb;AU.src='audio/'+id+'.mp3';
+  const pr=AU.play();if(pr&&pr.catch)pr.catch(fb);
+}
 function renderVoices(){
   const L=$('vList');
   if(!VOICES.length){L.innerHTML='<p style="text-align:center">😕 Tiada suara Bahasa Melayu dalam peranti ini.</p>'}
@@ -408,8 +421,8 @@ function renderVoices(){
     return `<button class="vo ${voice&&v.name===voice.name?'sel':''}" data-n="${v.name.replace(/"/g,'&quot;')}"><span class="fl">🇲🇾</span><span class="nm">${v.name.replace(/Microsoft |Google /,'').replace(/ - .*$/,'')}<small>Bahasa Melayu (Malaysia)</small></span>${nat?'<span class="tag">SEMULA JADI</span>':''}${i===0?'<span class="tag" style="background:#fff3bf;color:#e67700">TERBAIK</span>':''}</button>`}).join('');
   L.querySelectorAll('.vo').forEach(b=>b.onclick=()=>{voice=VOICES.find(v=>v.name===b.dataset.n);vs.name=voice.name;saveV();renderVoices();speak('Hai adik-adik! Jom kita baca buku sama-sama, okey?')});
   const hasMY=VOICES.some(v=>/^ms/i.test(v.lang)||/malay/i.test(v.name)),hasNat=VOICES.some(v=>(/^ms/i.test(v.lang)||/malay/i.test(v.name))&&/natural|neural|online|premium|enhanced/i.test(v.name));
-  $('vHint').innerHTML=hasNat?'✅ Peranti ini ada suara Malaysia yang semula jadi. Mantap!':
-   `💡 <b>Nak suara Malaysia yang lebih semula jadi?</b><br>• <b>Komputer:</b> buka app ini dalam pelayar <b>Microsoft Edge</b> dan pilih suara <b>Yasmin</b> (perempuan) atau <b>Osman</b> (lelaki).<br>• <b>Android:</b> Tetapan → Teks-ke-pertuturan → Enjin Google → muat turun <b>Bahasa Melayu</b>.<br>• <b>iPhone/iPad:</b> Tetapan → Kebolehcapaian → Kandungan Dituturkan → Suara → <b>Melayu</b>, kemudian muat turun suara.${hasMY?'':'<br><br>⚠️ Peranti ini belum ada suara Bahasa Melayu. Pasang dulu ikut langkah di atas, kemudian buka semula app ini.'}`;
+  $('vHint').innerHTML=(AUD.size?`🎧 <b>Audio rakaman Yasmin/Osman: ${AUD.size} fail.</b> Halaman yang ada rakaman akan guna audio ini di semua peranti.<br><br>`:'')+(hasNat?'✅ Peranti ini ada suara Malaysia yang semula jadi. Mantap!':
+   `💡 <b>Nak suara Malaysia yang lebih semula jadi?</b><br>• <b>Komputer:</b> buka app ini dalam pelayar <b>Microsoft Edge</b> dan pilih suara <b>Yasmin</b> (perempuan) atau <b>Osman</b> (lelaki).<br>• <b>Android:</b> Tetapan → Teks-ke-pertuturan → Enjin Google → muat turun <b>Bahasa Melayu</b>.<br>• <b>iPhone/iPad:</b> Tetapan → Kebolehcapaian → Kandungan Dituturkan → Suara → <b>Melayu</b>, kemudian muat turun suara.${hasMY?'':'<br><br>⚠️ Peranti ini belum ada suara Bahasa Melayu. Pasang dulu ikut langkah di atas, kemudian buka semula app ini.'}`);
 }
 function saveV(){try{localStorage.setItem('pmcVoice',JSON.stringify(vs))}catch(e){}}
 $('voiceBtn').onclick=()=>{loadVoices();$('rate').value=vs.rate;$('pitch').value=vs.pitch;renderVoices();$('vModal').classList.add('on')};
@@ -463,21 +476,21 @@ function renderDone(){
   $('rbot').style.display='flex';$('nextB').disabled=true;
   $('stage').querySelectorAll('.qz button').forEach(b=>b.onclick=()=>{
     const ok=+b.dataset.i===q.k;b.classList.add(ok?'y':'n');
-    if(ok){sfx.win();burst();st.quiz[cur.key]=1;save();$('qr').innerHTML='✅ <b>Betul!</b> Kamu dapat ⭐ lencana untuk buku ini!';speak(pick(PRAISE)+' Kamu dapat satu bintang!');
+    if(ok){sfx.win();burst();st.quiz[cur.key]=1;save();$('qr').innerHTML='✅ <b>Betul!</b> Kamu dapat ⭐ lencana untuk buku ini!';{const i=Math.random()*PRAISE.length|0;play('pujian-'+(i+1),PRAISE[i]+' Awak dapat satu bintang!')}
       $('stage').querySelectorAll('.qz button').forEach(x=>x.disabled=true)}
-    else{sfx.no();$('qr').innerHTML='❌ Cuba lagi! Kamu boleh baca semula buku ini.';speak(pick(RETRY))}
+    else{sfx.no();$('qr').innerHTML='❌ Cuba lagi! Kamu boleh baca semula buku ini.';const i=Math.random()*RETRY.length|0;play('cuba-'+(i+1),RETRY[i])}
   });
-  if(auto){speak('Yeay, dah habis baca! Terbaik! Okey, jom jawab kuiz. '+q.q);auto=false;$('autoBtn').classList.remove('on')}
+  if(auto){play(bookId(cur.key)+'-kuiz',quizLine(q,1));auto=false;$('autoBtn').classList.remove('on')}
 }
 function readPage(then){
   const p=cur.pages[pi];if(!p)return;const sc=document.querySelector('.page');
   $('sayB').classList.add('on');$('sayB').textContent='⏹ Berhenti';sc&&sc.classList.add('talking');
   let txt=(NAR[cur.key]&&NAR[cur.key][pi])||plain(p.t);
   if(pi===0)txt='Hai! Hari ni kita baca buku, '+cur.t.replace(/[!.?]+$/,'')+'. Jom! '+txt;
-  speak(txt,()=>{sc&&sc.classList.remove('talking');$('sayB').classList.remove('on');$('sayB').textContent='🔊 Dengar';then&&then()});
+  play(bookId(cur.key)+'-'+(pi+1),txt,()=>{sc&&sc.classList.remove('talking');$('sayB').classList.remove('on');$('sayB').textContent='🔊 Dengar';then&&then()});
 }
 $('sayB').onclick=()=>{ac();if($('sayB').classList.contains('on')){auto=false;$('autoBtn').classList.remove('on');stopSpeak();document.querySelector('.page')?.classList.remove('talking');$('sayB').classList.remove('on');$('sayB').textContent='🔊 Dengar';return}
-  if(pi>=cur.pages.length){speak('Okey, jom jawab kuiz! '+cur.quiz.q+' '+cur.quiz.a.map((a,i)=>'Pilihan '+'ABC'[i]+'. '+a+'.').join(' '));return}readPage()};
+  if(pi>=cur.pages.length){play(bookId(cur.key)+'-kuiz',quizLine(cur.quiz,1));return}readPage()};
 $('autoBtn').onclick=()=>{auto=!auto;$('autoBtn').classList.toggle('on',auto);toast(auto?'⏯ Bacaan automatik: buku akan dibaca sampai habis':'Bacaan automatik dihentikan');if(auto)autoRead();else stopSpeak()};
 function autoRead(){if(!auto||pi>=cur.pages.length)return;readPage(()=>{if(!auto)return;setTimeout(()=>{if(!auto)return;pi++;sfx.flip();renderPage();if(pi<cur.pages.length)autoRead()},700)})}
 $('nextB').onclick=()=>{if(pi<cur.pages.length){pi++;sfx.flip();auto=false;$('autoBtn').classList.remove('on');renderPage()}};
@@ -489,14 +502,14 @@ $('stage').addEventListener('touchend',e=>{if(sx===null)return;const dx=e.change
 
 /* ============ CALM ============ */
 $('mood').innerHTML=MOODS.map((m,i)=>`<button data-i="${i}" title="${m[1]}">${m[0]}</button>`).join('');
-$('mood').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=MOODS[+b.dataset.i];$('mood').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('mres').innerHTML=`<b>${m[0]} ${m[1]}</b><br>${m[2]}`;sfx.tap();speak(m[3])});
+$('mood').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=MOODS[+b.dataset.i];$('mood').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('mres').innerHTML=`<b>${m[0]} ${m[1]}</b><br>${m[2]}`;sfx.tap();play('mood-'+(+b.dataset.i+1),m[3])});
 let breathing=false;
 $('breathBtn').onclick=async()=>{if(breathing)return;breathing=true;ac();const orb=$('orb'),btn=$('breathBtn');btn.disabled=true;
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
-  for(let i=1;i<=5;i++){orb.classList.add('in');orb.textContent='Tarik… '+i;tone(392,4,'sine',.05);tone(523,4,'sine',.03);speak(i===1?'Okey, jom tarik nafas dalam-dalam…':'Tarik…');await wait(4000);
+  for(let i=1;i<=5;i++){orb.classList.add('in');orb.textContent='Tarik… '+i;tone(392,4,'sine',.05);tone(523,4,'sine',.03);i===1?play('nafas-mula','Okey, jom tarik nafas dalam-dalam…'):play('nafas-tarik','Tarik…');await wait(4000);
     orb.textContent='Tahan';await wait(1500);
-    orb.classList.remove('in');orb.textContent='Hembus…';tone(330,4,'sine',.05);speak('Hembus pelan-pelan…');await wait(4200)}
-  orb.textContent='Bagus! 🌟';sfx.win();speak('Bagus! Macam mana, rasa tenang sikit tak? Terbaik!');btn.disabled=false;breathing=false};
+    orb.classList.remove('in');orb.textContent='Hembus…';tone(330,4,'sine',.05);play('nafas-hembus','Hembus pelan-pelan…');await wait(4200)}
+  orb.textContent='Bagus! 🌟';sfx.win();play('nafas-tamat','Bagus! Macam mana, rasa tenang sikit tak? Terbaik!');btn.disabled=false;breathing=false};
 
 /* ============ BADGES ============ */
 function renderBadges(){
