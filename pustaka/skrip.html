@@ -38,13 +38,13 @@ a{color:#1c7ed6;font-weight:700}
 <body>
 <div class="wrap">
   <h1>🎙️ Skrip Audio · Pustaka Minda Ceria</h1>
-  <p style="margin:4px 0 0">Untuk Cikgu sahaja: jana audio suara <b>Yasmin</b> atau <b>Osman</b> untuk setiap halaman buku.</p>
+  <p style="margin:4px 0 0">Untuk Cikgu sahaja: jana audio untuk setiap buku. Suara yang dipilih: <b>Hana (ElevenLabs)</b>.</p>
 
   <div class="box">
     <b>Cara buat (setiap kotak = 1 fail MP3):</b>
     <ol>
-      <li>Buka laman teks-ke-suara, contohnya <a href="https://ttsfree.com/text-to-speech/malaysian-malay">ttsfree.com</a> atau <a href="https://speechgen.io/ms/tts-malay/">speechgen.io</a>.</li>
-      <li>Pilih suara <b>Yasmin</b> (perempuan) atau <b>Osman</b> (lelaki). <b>Guna satu suara sahaja untuk semua fail</b> supaya bunyinya konsisten.</li>
+      <li>Buka <a href="https://elevenlabs.io">ElevenLabs</a> (atau laman teks-ke-suara lain).</li>
+      <li>Guna suara <b>Hana (ElevenLabs)</b> dengan tetapan yang sama untuk <b>semua buku</b> supaya bunyinya konsisten.</li>
       <li>Tekan <b>📋 Salin teks</b>, tampal di laman itu, jana dan dengar dulu.</li>
       <li>Muat turun MP3 dan <b>namakan fail</b> seperti nama ungu (tekan <b>📋 nama</b> untuk salin), contoh <code>minda1-1.mp3</code>.</li>
       <li>Tandakan ✅ Siap. Bila selesai, <b>hantar semua MP3 kepada Claude</b> (boleh dalam satu fail .zip). Claude akan masukkan ke dalam app.</li>
@@ -67,7 +67,7 @@ function render(){
   $=id=>document.getElementById(id);
   $('list').innerHTML=D.books.map(b=>`<details style="border-color:${b.col}"><summary>${b.emoji} ${b.title}<span class="c">${count(b.segs)}/${b.segs.length}</span></summary>
     ${b.segs.map(seg).join('')}
-    <div class="whole">⚡ <b>Jalan pintas</b> (hanya untuk laman yang sokong SSML, seperti speechgen.io): salin seluruh buku dengan jeda 3 saat, muat turun sebagai <code>${b.id}.mp3</code>, dan Claude akan potong ikut halaman. <button class="sm" data-t="${encodeURIComponent('<speak>'+b.segs.map(x=>esc(x.text)).join(' <break time=\"3s\"/> ')+'</speak>')}">📋 Salin satu buku</button></div></details>`).join('')+
+    <div class="whole">⚡ <b>Cara paling mudah:</b> salin <b>seluruh buku</b>, jana sekali gus, dan hantar satu MP3 kepada Claude. Claude akan potong ikut halaman. <button class="sm" data-t="${encodeURIComponent(b.segs.map(x=>x.text).join('\n\n'))}">📋 Salin satu buku</button></div></details>`).join('')+
    `<details style="border-color:#f59f00"><summary>✨ Suara tambahan (pujian, mood, tarik nafas)<span class="c">${count(D.extra)}/${D.extra.length}</span></summary>${D.extra.map(seg).join('')}</details>`;
   const n=count(all);$('pb').style.width=(n/all.length*100)+'%';$('pt').textContent=`✅ ${n} daripada ${all.length} fail siap`;
 }
