@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RuteKu – All My Runs</title>
+<style>/* required styles */
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	  -webkit-user-drag: none;
+	}
+/* Prevents IE11 from highlighting tiles in blue */
+.leaflet-tile::selection {
+	background: transparent;
+}
+/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
+.leaflet-safari .leaflet-tile {
+	image-rendering: -webkit-optimize-contrast;
+	}
+/* hack that prevents hw layers "stretching" when loading new tiles */
+.leaflet-safari .leaflet-tile-container {
+	width: 1600px;
+	height: 1600px;
+	-webkit-transform-origin: 0 0;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
+/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container .leaflet-overlay-pane svg {
+	max-width: none !important;
+	max-height: none !important;
+	}
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+	max-width: none !important;
+	max-height: none !important;
+	width: auto;
+	padding: 0;
+	}
+
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
+.leaflet-container.leaflet-touch-zoom {
+	-ms-touch-action: pan-x pan-y;
+	touch-action: pan-x pan-y;
+	}
+.leaflet-container.leaflet-touch-drag {
+	-ms-touch-action: pinch-zoom;
+	/* Fallback for FF which doesn't support pinch-zoom */
+	touch-action: none;
+	touch-action: pinch-zoom;
+}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+	-ms-touch-action: none;
+	touch-action: none;
+}
+.leaflet-container {
+	-webkit-tap-highlight-color: transparent;
+}
+.leaflet-container a {
+	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
+}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	z-index: 800;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-pane         { z-index: 400; }
+
+.leaflet-tile-pane    { z-index: 200; }
+.leaflet-overlay-pane { z-index: 400; }
+.leaflet-shadow-pane  { z-index: 500; }
+.leaflet-marker-pane  { z-index: 600; }
+.leaflet-tooltip-pane   { z-index: 650; }
+.leaflet-popup-pane   { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+.leaflet-map-pane svg    { z-index: 200; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: url(#default#VML);
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 800;
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+.leaflet-zoom-animated {
+	-webkit-transform-origin: 0 0;
+	    -ms-transform-origin: 0 0;
+	        transform-origin: 0 0;
+	}
+svg.leaflet-zoom-animated {
+	will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-interactive {
+	cursor: pointer;
+	}
+.leaflet-grab {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	cursor:         grab;
+	}
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-interactive {
+	cursor: crosshair;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive,
+.leaflet-dragging .leaflet-marker-draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	cursor:         grabbing;
+	}
+
+/* marker & overlays interactivity */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-image-layer,
+.leaflet-pane > svg path,
+.leaflet-tile-container {
+	pointer-events: none;
+	}
+
+.leaflet-marker-icon.leaflet-interactive,
+.leaflet-image-layer.leaflet-interactive,
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline-offset: 1px;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+.leaflet-touch .leaflet-bar a:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	}
+.leaflet-touch .leaflet-bar a:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	}
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
+	font-size: 22px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: url(images/layers.png);
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: url(images/layers-2x.png);
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-scrollbar {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding-right: 5px;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	font-size: 13px;
+	font-size: 1.08333em;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+/* Default icon URLs */
+.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+	background-image: url(images/marker-icon.png);
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	line-height: 1.4;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus {
+	text-decoration: underline;
+	}
+.leaflet-attribution-flag {
+	display: inline !important;
+	vertical-align: baseline !important;
+	width: 1em;
+	height: 0.6669em;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	white-space: nowrap;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.8);
+	text-shadow: 1px 1px #fff;
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	margin-bottom: 20px;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 24px 13px 20px;
+	line-height: 1.3;
+	font-size: 13px;
+	font-size: 1.08333em;
+	min-height: 1px;
+	}
+.leaflet-popup-content p {
+	margin: 17px 0;
+	margin: 1.3em 0;
+	}
+.leaflet-popup-tip-container {
+	width: 40px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	margin-top: -1px;
+	margin-left: -20px;
+	overflow: hidden;
+	pointer-events: none;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+	pointer-events: auto;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+	color: #333;
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: none;
+	text-align: center;
+	width: 24px;
+	height: 24px;
+	font: 16px/24px Tahoma, Verdana, sans-serif;
+	color: #757575;
+	text-decoration: none;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover,
+.leaflet-container a.leaflet-popup-close-button:focus {
+	color: #585858;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	-ms-zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
+
+
+/* Tooltip */
+/* Base styles for the element that has a tooltip */
+.leaflet-tooltip {
+	position: absolute;
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	color: #222;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+	}
+.leaflet-tooltip.leaflet-interactive {
+	cursor: pointer;
+	pointer-events: auto;
+	}
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	position: absolute;
+	pointer-events: none;
+	border: 6px solid transparent;
+	background: transparent;
+	content: "";
+	}
+
+/* Directions */
+
+.leaflet-tooltip-bottom {
+	margin-top: 6px;
+}
+.leaflet-tooltip-top {
+	margin-top: -6px;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-top:before {
+	left: 50%;
+	margin-left: -6px;
+	}
+.leaflet-tooltip-top:before {
+	bottom: 0;
+	margin-bottom: -12px;
+	border-top-color: #fff;
+	}
+.leaflet-tooltip-bottom:before {
+	top: 0;
+	margin-top: -12px;
+	margin-left: -6px;
+	border-bottom-color: #fff;
+	}
+.leaflet-tooltip-left {
+	margin-left: -6px;
+}
+.leaflet-tooltip-right {
+	margin-left: 6px;
+}
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	top: 50%;
+	margin-top: -6px;
+	}
+.leaflet-tooltip-left:before {
+	right: 0;
+	margin-right: -12px;
+	border-left-color: #fff;
+	}
+.leaflet-tooltip-right:before {
+	left: 0;
+	margin-left: -12px;
+	border-right-color: #fff;
+	}
+
+/* Printing */
+
+@media print {
+	/* Prevent printers from removing background-images of controls. */
+	.leaflet-control {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		}
+	}
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1115;--panel:#161920;--line:#262a33;--ink:#f2f3f5;--mute:#8d93a0;--acc:#ff5a1f;--acc2:#2ec4ff}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 Barlow,system-ui,sans-serif;overflow:hidden}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.num{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:700;letter-spacing:.01em}
+#app{display:grid;grid-template-columns:370px minmax(0,1fr);height:100%}
+#side{display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);overflow:hidden}
+.brand{display:flex;gap:12px;align-items:center;padding:18px 18px 10px}
+.brand svg{flex:none}
+.brand h1{margin:0;font:700 26px/1 "Barlow Condensed",sans-serif}
+.brand p{margin:2px 0 0;color:var(--mute);font-size:13px}
+.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);margin:8px 18px;border-radius:12px;overflow:hidden}
+.totals div{background:#1b1f27;padding:10px 8px;text-align:center}
+.totals b{display:block;font-size:22px;line-height:1.1}
+.totals span{font-size:12px;color:var(--mute)}
+.drop{position:relative;margin:8px 18px;border:1.5px dashed #3a404c;border-radius:12px;padding:14px;text-align:center;transition:.15s}
+.drop.over{border-color:var(--acc);background:#ff5a1f14}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.drop strong{display:block}
+.drop small{color:var(--mute);font-size:12.5px}
+.tools{display:flex;gap:8px;padding:6px 18px 10px}
+.tools input,.tools select{height:40px;border-radius:10px;border:1px solid var(--line);background:#1b1f27;padding:0 10px;font-size:15px}
+.tools input{flex:1}
+#list{list-style:none;margin:0;padding:0 10px 18px;overflow-y:auto;flex:1}
+#list li{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;cursor:pointer}
+#list li:hover{background:#1f232c}
+#list li.on{background:#252a35}
+#list i{flex:none;width:10px;height:34px;border-radius:5px}
+#list li div{flex:1}
+#list b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#list span{font-size:13px;color:var(--mute)}
+.del{flex:none;width:34px;height:34px;border:0;border-radius:8px;background:none;color:var(--mute);font-size:20px}
+.del:hover{background:#3a1d16;color:var(--acc)}
+.empty{padding:24px 12px;text-align:center;color:var(--mute)}
+.empty button{margin-top:10px}
+.btn{height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#1b1f27;font-weight:600}
+.btn:hover{border-color:#4a5160}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+#mapwrap{position:relative;height:100%}
+#map{position:absolute;inset:0;background:#1b1f27}
+.ctl{position:absolute;z-index:500;display:flex;gap:6px;flex-wrap:wrap}
+.ctl.tr{top:12px;right:12px;justify-content:flex-end}
+.seg{display:flex;background:#0f1115e6;border:1px solid var(--line);border-radius:10px;padding:3px;backdrop-filter:blur(6px)}
+.seg button{border:0;background:none;padding:7px 10px;border-radius:7px;font-size:13.5px;font-weight:600;color:var(--mute)}
+.seg button.on{background:var(--ink);color:var(--bg)}
+#hud{position:absolute;z-index:500;top:12px;left:12px;display:none;gap:1px;background:var(--line);border-radius:12px;overflow:hidden;box-shadow:0 6px 24px #0008}
+#hud.show{display:flex}
+#hud div{background:#0f1115ee;padding:8px 14px;text-align:center}
+#hud b{display:block;font-size:30px;line-height:1}
+#hud span{font-size:12px;color:var(--mute)}
+#detail{position:absolute;z-index:600;left:12px;bottom:12px;width:min(440px,calc(100% - 24px));background:#0f1115f2;border:1px solid var(--line);border-radius:16px;padding:14px 16px 16px;box-shadow:0 10px 40px #000a;backdrop-filter:blur(8px)}
+#detail[hidden]{display:none}
+.dh{display:flex;gap:10px;align-items:flex-start}
+.dh h2{flex:1;margin:0;font:700 22px/1.15 "Barlow Condensed",sans-serif;outline:none;border-radius:6px}
+.dh h2:focus{background:#1f232c}
+.dh small{display:block;color:var(--mute);font-size:13px;font-family:Barlow;font-weight:400}
+.x{width:36px;height:36px;border:0;border-radius:9px;background:#1f232c;font-size:18px;flex:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 8px}
+.stats b{display:block;font-size:22px;line-height:1.05;white-space:nowrap}
+.stats span{font-size:12px;color:var(--mute)}
+.fig{position:relative;height:84px;margin:4px 0 10px;cursor:pointer}
+.fig canvas{position:absolute;inset:0;width:100%;height:100%}
+.fig em{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);font-size:13px;font-style:normal}
+.fig em[hidden]{display:none}
+.player{display:flex;gap:8px;align-items:center}
+.play{width:46px;height:46px;border-radius:50%;border:0;background:var(--acc);display:grid;place-items:center;flex:none}
+.player input[type=range]{flex:1;accent-color:var(--acc);height:30px}
+.player select{height:38px;border-radius:9px;border:1px solid var(--line);background:#1b1f27;padding:0 6px;font-size:14px}
+.chk{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mute);margin-top:8px}
+.chk input{accent-color:var(--acc);width:18px;height:18px}
+.runner{pointer-events:none}
+.rf{width:48px;height:56px;transition:transform .15s}
+.rf.flip{transform:scaleX(-1)}
+.rf svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 3px #0007)}
+.rf .bob{animation:bob .4s ease-in-out infinite}
+.rf .limb{transform-box:view-box;animation:swing .4s ease-in-out infinite alternate}
+.rf .lf{transform-origin:24px 31px}.rf .lb{transform-origin:24px 31px;animation-direction:alternate-reverse}
+.rf .af{transform-origin:24px 19px;animation-direction:alternate-reverse}.rf .ab{transform-origin:24px 19px}
+.rf.idle .limb,.rf.idle .bob{animation-play-state:paused}
+@keyframes swing{from{transform:rotate(38deg)}to{transform:rotate(-38deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+.go{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:var(--acc);display:grid;place-items:center}
+.go svg{margin-left:2px}
+.hint{font-size:12.5px;color:var(--mute);margin:6px 0 0}
+.pin{width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px #0009}
+#toast{position:fixed;z-index:900;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:#111;padding:10px 16px;border-radius:10px;font-weight:600;box-shadow:0 6px 24px #0006;opacity:0;pointer-events:none;transition:.2s;max-width:90vw}
+#toast.show{opacity:1}
+.leaflet-container{font-family:Barlow,sans-serif}
+@media (max-width:820px){
+  body{overflow:auto}
+  #app{display:flex;flex-direction:column;height:auto}
+  #mapwrap{height:auto;order:-1;position:relative}
+  #map{position:relative;height:60vh;min-height:360px}
+  #side{border-right:0;overflow:visible}
+  #list{overflow:visible}
+  .brand{padding-top:14px}
+  #detail{position:static;width:auto;margin:10px;padding:12px;box-shadow:none}
+  #hud{top:auto;bottom:12px}
+  .stats b{font-size:19px}
+  #hud b{font-size:22px}
+  #hud div{padding:6px 10px}
+  .seg button{padding:6px 8px;font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <header class="brand">
+      <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true"><rect width="42" height="42" rx="11" fill="#ff5a1f"/><path d="M9 30c5-1 6-9 11-10s6 5 13-8" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><circle cx="33" cy="12" r="3.5" fill="#fff"/></svg>
+      <div><h1>RuteKu</h1><p>Every run you've done, on one map</p></div>
+    </header>
+    <section class="totals" id="totals"></section>
+    <label class="drop" id="drop">
+      <input type="file" id="file" multiple accept=".gpx,.tcx,.fit,application/gpx+xml">
+      <strong>Drop GPX · TCX · FIT files</strong>
+      <small>or tap to choose. You can pick many files at once. Works with Strava, Garmin, Coros, Suunto and Apple Watch exports.</small>
+    </label>
+    <div class="tools">
+      <input id="q" type="search" placeholder="Search runs" aria-label="Search runs">
+      <select id="sort" aria-label="Sort">
+        <option value="new">Newest</option><option value="old">Oldest</option>
+        <option value="long">Longest</option><option value="fast">Fastest</option>
+      </select>
+    </div>
+    <ul id="list"></ul>
+  </aside>
+
+  <main id="mapwrap">
+    <div id="map"></div>
+    <div class="ctl tr">
+      <div class="seg" id="tiles">
+        <button data-t="m">Map</button><button data-t="y">Satellite</button><button data-t="p">Terrain</button>
+      </div>
+      <div class="seg" id="mode">
+        <button data-m="color">Colours</button><button data-m="heat">Heatmap</button>
+      </div>
+      <div class="seg"><button id="fit">Show all</button></div>
+    </div>
+    <div id="hud">
+      <div><b class="num" id="hD">0.00</b><span>km</span></div>
+      <div><b class="num" id="hT">0:00</b><span>time</span></div>
+      <div><b class="num" id="hP">–</b><span>pace /km</span></div>
+    </div>
+    <section id="detail" hidden>
+      <div class="dh">
+        <h2 id="dName" contenteditable="true" spellcheck="false" title="Tap to rename"></h2>
+        <button class="x" id="dClose" aria-label="Close">✕</button>
+      </div>
+      <small id="dDate" style="color:var(--mute);font-size:13px"></small>
+      <div class="stats" id="dStats"></div>
+      <div class="fig" id="fig"><canvas id="elev"></canvas><em id="noEle" hidden>No elevation data</em></div>
+      <div class="player">
+        <button class="play" id="pBtn" aria-label="Play"><svg id="pIco" width="18" height="18" viewBox="0 0 18 18"><path d="M4 2l12 7-12 7z" fill="#fff"/></svg></button>
+        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay position">
+        <select id="speed" aria-label="Replay speed"><option value="12">12 s</option><option value="30" selected>30 s</option><option value="60">1 min</option><option value="120">2 min</option></select>
+      </div>
+      <label class="chk"><input type="checkbox" id="follow" checked> Camera follows runner</label>
+      <p class="hint" id="noTime" hidden>This file has no timestamps (often a planned route, not a recorded run), so time is estimated at 6:00/km and pace isn't shown.</p>
+    </section>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+{
+const $ = s => document.querySelector(s);
+const COLORS = ['#ff5a1f','#2ec4ff','#ffd23f','#b66dff','#ff4f9a','#3ddc97','#ff9f1c','#5b8cff','#f2f3f5','#00d1c1','#e84855','#9bd44a'];
+const HEAT = '#ff3d00';
+const RUNNER = `<div class="rf idle"><svg viewBox="0 0 48 56" aria-hidden="true">
+<ellipse cx="24" cy="53" rx="11" ry="2.6" fill="#000" opacity=".35"/>
+<g class="bob">
+<g class="limb lb"><polyline points="24,31 26,40 22,48" fill="none" stroke="#1d3557" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 48h6" stroke="#e8e8e8" stroke-width="4" stroke-linecap="round"/></g>
+<g class="limb ab"><polyline points="24,19 27,25 31,23" fill="none" stroke="#e0a77f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M24 18v13" stroke="#ff5a1f" stroke-width="10" stroke-linecap="round"/>
+<path d="M21 23h6" stroke="#fff" stroke-width="1.6" opacity=".7"/>
+<g class="limb lf"><polyline points="24,31 26,40 22,48" fill="none" stroke="#264b78" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 48h6.5" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
+<g class="limb af"><polyline points="24,19 27,25 31,23" fill="none" stroke="#f4c39b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<circle cx="25" cy="9.5" r="7" fill="#f4c39b"/>
+<path d="M18 8.5a7 7 0 0 1 14 0z" fill="#2b2118"/>
+<rect x="17.6" y="7.6" width="14.8" height="2.6" rx="1.3" fill="#2ec4ff"/>
+<path d="M18 9l-5 3" stroke="#2ec4ff" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="28.5" cy="11" r="1" fill="#2b2118"/>
+</g></svg></div>`;
+let routes = [], layers = {}, sel = null, mode = 'color', markers = [];
+const pref = (k, v) => { try { if (v === undefined) return localStorage.getItem('ruteku_' + k); localStorage.setItem('ruteku_' + k, v); } catch (e) { return null; } };
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 3200); };
+const fmtT = s => { if (s == null || !isFinite(s)) return '–'; s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+const fmtP = spk => (spk && isFinite(spk) && spk < 3600) ? fmtT(spk) : '–';
+const fmtDate = d => new Date(d).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'});
+const fmtTime = d => new Date(d).toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+function hav(a, b) { const R = 6371e3, r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r;
+  const x = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+
+/* ---------- parsing ---------- */
+function parseXML(text, fname) {
+  const d = new DOMParser().parseFromString(text, 'application/xml');
+  if (d.getElementsByTagName('parsererror').length) throw new Error('not valid XML');
+  const one = (el, n) => el.getElementsByTagNameNS('*', n)[0];
+  const val = (el, n) => { const e = one(el, n); return e ? e.textContent.trim() : null; };
+  const pts = [];
+  let nodes = [...d.getElementsByTagNameNS('*', 'trkpt')];
+  if (!nodes.length) nodes = [...d.getElementsByTagNameNS('*', 'rtept')];
+  if (nodes.length) {
+    for (const n of nodes) {
+      const e = val(n, 'ele'), t = val(n, 'time');
+      pts.push([+n.getAttribute('lat'), +n.getAttribute('lon'), e != null ? +e : null, t ? Date.parse(t) : null]);
+    }
+  } else {
+    for (const n of d.getElementsByTagNameNS('*', 'Trackpoint')) {
+      const la = val(n, 'LatitudeDegrees'), lo = val(n, 'LongitudeDegrees');
+      if (la == null || lo == null) continue;
+      const e = val(n, 'AltitudeMeters'), t = val(n, 'Time');
+      pts.push([+la, +lo, e != null ? +e : null, t ? Date.parse(t) : null]);
+    }
+  }
+  let name = null;
+  const trk = one(d, 'trk'); if (trk) name = val(trk, 'name');
+  if (!name) { const md = one(d, 'metadata'); if (md) name = val(md, 'name'); }
+  return { name: name || fname, pts };
+}
+
+function parseFIT(buf, fname) {
+  const dv = new DataView(buf);
+  const hs = dv.getUint8(0), size = dv.getUint32(4, true);
+  if (String.fromCharCode(dv.getUint8(8), dv.getUint8(9), dv.getUint8(10), dv.getUint8(11)) !== '.FIT') throw new Error('not a FIT file');
+  const end = Math.min(hs + size, buf.byteLength);
+  const defs = {}, pts = [], EPOCH = 631065600;
+  let p = hs, lastTs = 0;
+  const read = (def) => {
+    const rec = {};
+    for (const [num, sz] of def.f) {
+      let v = null;
+      if (sz === 1) v = dv.getUint8(p);
+      else if (sz === 2) v = dv.getUint16(p, def.le);
+      else if (sz === 4) v = (num === 0 || num === 1) && def.g === 20 ? dv.getInt32(p, def.le) : dv.getUint32(p, def.le);
+      rec[num] = v; p += sz;
+    }
+    p += def.dsz; return rec;
+  };
+  const take = (rec, ts) => {
+    if (rec[253] != null && rec[253] !== 0xFFFFFFFF) lastTs = rec[253]; else if (ts != null) rec[253] = ts;
+    const la = rec[0], lo = rec[1];
+    if (la == null || lo == null || la === 0x7FFFFFFF || lo === 0x7FFFFFFF) return;
+    let ele = null;
+    if (rec[78] != null && rec[78] !== 0xFFFFFFFF) ele = rec[78] / 5 - 500;
+    else if (rec[2] != null && rec[2] !== 0xFFFF) ele = rec[2] / 5 - 500;
+    const k = 180 / 2 ** 31;
+    pts.push([la * k, lo * k, ele, rec[253] ? (rec[253] + EPOCH) * 1000 : null]);
+  };
+  while (p < end) {
+    const h = dv.getUint8(p++);
+    if (h & 0x80) {
+      const def = defs[(h >> 5) & 3]; if (!def) throw new Error('bad FIT data');
+      const off = h & 0x1f; let ts = (lastTs & ~0x1f) + off; if (off < (lastTs & 0x1f)) ts += 0x20;
+      lastTs = ts; const rec = read(def); if (def.g === 20) take(rec, ts);
+    } else if (h & 0x40) {
+      const lt = h & 0xf, dev = h & 0x20; p++;
+      const le = dv.getUint8(p++) === 0, g = dv.getUint16(p, le); p += 2;
+      const n = dv.getUint8(p++), f = [];
+      for (let i = 0; i < n; i++) { f.push([dv.getUint8(p), dv.getUint8(p + 1)]); p += 3; }
+      let dsz = 0;
+      if (dev) { const nd = dv.getUint8(p++); for (let i = 0; i < nd; i++) { dsz += dv.getUint8(p + 1); p += 3; } }
+      defs[lt] = { g, le, f, dsz };
+    } else {
+      const def = defs[h & 0xf]; if (!def) throw new Error('bad FIT data');
+      const rec = read(def); if (def.g === 20) take(rec);
+    }
+  }
+  return { name: fname, pts };
+}
+
+/* ---------- route model ---------- */
+function prep(r) {
+  const P = r.pts, cum = [0]; let gain = 0, ref = null, mov = 0, hasT = P[0][3] != null && P.at(-1)[3] != null;
+  for (let i = 1; i < P.length; i++) {
+    const d = hav(P[i - 1], P[i]); cum.push(cum[i - 1] + d);
+    if (hasT) { const dt = (P[i][3] - P[i - 1][3]) / 1000; if (dt > 0 && dt <= 30 && d / dt > 0.5) mov += dt; }
+  }
+  for (const q of P) { const e = q[2]; if (e == null) continue; if (ref == null) ref = e; else if (e - ref > 2) { gain += e - ref; ref = e; } else if (ref - e > 2) ref = e; }
+  r.cum = cum; r.dist = cum.at(-1); r.gain = P.some(q => q[2] != null) ? gain : null;
+  r.mov = hasT ? mov : null; r.elapsed = hasT ? (P.at(-1)[3] - P[0][3]) / 1000 : null;
+  r.pace = r.mov && r.dist > 50 ? r.mov / (r.dist / 1000) : null;
+  r.ll = P.map(q => L.latLng(q[0], q[1]));
+  return r;
+}
+function makeRoute(name, pts) {
+  pts = pts.filter(q => isFinite(q[0]) && isFinite(q[1]) && !(q[0] === 0 && q[1] === 0) && Math.abs(q[0]) <= 90);
+  if (pts.length < 2) throw new Error('no GPS points found');
+  const used = new Set(routes.map(r => r.color));
+  const color = COLORS.find(c => !used.has(c)) || COLORS[routes.length % COLORS.length];
+  return prep({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: name.replace(/\.(gpx|tcx|fit)$/i, ''), date: pts[0][3] || Date.now(), color, pts });
+}
+
+/* ---------- storage (IndexedDB, optional) ---------- */
+const DB = {
+  db: null,
+  open() { return new Promise(res => { try { const q = indexedDB.open('ruteku', 1);
+    q.onupgradeneeded = () => q.result.createObjectStore('r', { keyPath: 'id' });
+    q.onsuccess = () => { this.db = q.result; res(); }; q.onerror = () => res(); } catch (e) { res(); } }); },
+  put(r) { try { this.db && this.db.transaction('r', 'readwrite').objectStore('r').put({ id: r.id, name: r.name, date: r.date, color: r.color, pts: r.pts }); } catch (e) {} },
+  del(id) { try { this.db && this.db.transaction('r', 'readwrite').objectStore('r').delete(id); } catch (e) {} },
+  all() { return new Promise(res => { try { if (!this.db) return res([]); const q = this.db.transaction('r').objectStore('r').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => res([]); } catch (e) { res([]); } }); }
+};
+
+/* ---------- map ---------- */
+const map = L.map('map', { zoomControl: false, preferCanvas: true, worldCopyJump: true }).setView([3.139, 101.6869], 12);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+let tile = null;
+function setTile(k) {
+  if (tile) map.removeLayer(tile);
+  tile = L.tileLayer(`https://{s}.google.com/vt/lyrs=${k}&x={x}&y={y}&z={z}&hl=en`, { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 21, attribution: 'Map data © Google' }).addTo(map);
+  document.querySelectorAll('#tiles button').forEach(b => b.classList.toggle('on', b.dataset.t === k));
+  pref('tile', k);
+}
+function setMode(m) { mode = m; document.querySelectorAll('#mode button').forEach(b => b.classList.toggle('on', b.dataset.m === m)); pref('mode', m); styleAll(); }
+
+function ensureLayer(r) {
+  if (layers[r.id]) return;
+  layers[r.id] = L.polyline(r.ll, { color: r.color, weight: 4, opacity: .9, lineJoin: 'round' }).addTo(map)
+    .on('click', () => select(r.id));
+}
+function styleAll() {
+  for (const r of routes) {
+    const l = layers[r.id]; if (!l) continue;
+    if (sel) {
+      if (r.id === sel) l.setStyle({ color: r.color, weight: 6, opacity: play.started ? .35 : 1 });
+      else l.setStyle({ color: mode === 'heat' ? HEAT : r.color, weight: 3, opacity: .15 });
+    } else if (mode === 'heat') l.setStyle({ color: HEAT, weight: 3, opacity: .35 });
+    else l.setStyle({ color: r.color, weight: 4, opacity: .9 });
+  }
+  if (sel && layers[sel]) layers[sel].bringToFront();
+}
+function fitAll() {
+  const ls = Object.values(layers); if (!ls.length) return;
+  map.fitBounds(L.featureGroup(ls).getBounds(), { padding: [40, 40] });
+}
+
+/* ---------- list & totals ---------- */
+function renderTotals() {
+  const km = routes.reduce((a, r) => a + r.dist, 0) / 1000;
+  const hrs = routes.reduce((a, r) => a + (r.mov || 0), 0) / 3600;
+  const gain = routes.reduce((a, r) => a + (r.gain || 0), 0);
+  $('#totals').innerHTML = [[routes.length, 'runs'], [km.toFixed(km >= 100 ? 0 : 1), 'km'], [routes.some(r => r.mov) ? hrs.toFixed(1) : '–', 'hours'], [Math.round(gain).toLocaleString(), 'm climb']]
+    .map(([v, l]) => `<div><b class="num">${v}</b><span>${l}</span></div>`).join('');
+}
+function renderList() {
+  const q = $('#q').value.trim().toLowerCase(), s = $('#sort').value;
+  let arr = routes.filter(r => !q || r.name.toLowerCase().includes(q) || fmtDate(r.date).toLowerCase().includes(q));
+  const by = { new: (a, b) => b.date - a.date, old: (a, b) => a.date - b.date, long: (a, b) => b.dist - a.dist, fast: (a, b) => (a.pace || 1e9) - (b.pace || 1e9) };
+  arr.sort(by[s]);
+  if (!routes.length) {
+    $('#list').innerHTML = `<li class="empty" style="display:block;cursor:default">No runs yet. Add your GPX, TCX or FIT files above and every route will appear on the map.<br><button class="btn" id="demo">Try a sample route</button></li>`;
+    return;
+  }
+  if (!arr.length) { $('#list').innerHTML = `<li class="empty" style="display:block">No runs match "${esc(q)}"</li>`; return; }
+  $('#list').innerHTML = arr.map(r => `<li data-id="${r.id}" class="${sel === r.id ? 'on' : ''}">
+    <i style="background:${r.color}"></i>
+    <div><b>${esc(r.name)}</b><span>${fmtDate(r.date)} · <span class="num" style="color:var(--ink);font-size:14px">${(r.dist / 1000).toFixed(2)} km</span> · ${fmtP(r.pace)} /km</span></div>
+    <button class="go" data-go="${r.id}" aria-label="Replay ${esc(r.name)}"><svg width="14" height="14" viewBox="0 0 18 18"><path d="M4 2l12 7-12 7z" fill="#fff"/></svg></button>
+    <button class="del" data-del="${r.id}" aria-label="Delete ${esc(r.name)}">×</button></li>`).join('');
+}
+function refresh() { renderTotals(); renderList(); styleAll(); }
+
+/* ---------- import ---------- */
+async function addFiles(files) {
+  let ok = 0, skip = 0, bad = [];
+  for (const f of files) {
+    try {
+      const ext = f.name.split('.').pop().toLowerCase();
+      const res = ext === 'fit' ? parseFIT(await f.arrayBuffer(), f.name) : parseXML(await f.text(), f.name);
+      const r = makeRoute(res.name, res.pts);
+      if (routes.some(x => Math.abs(x.date - r.date) < 1000 && Math.abs(x.dist - r.dist) < 20)) { skip++; continue; }
+      routes.push(r); ensureLayer(r); DB.put(r); ok++;
+    } catch (e) { bad.push(f.name + ' (' + e.message + ')'); }
+  }
+  refresh(); if (ok === 1) select(routes.at(-1).id); else if (ok) fitAll();
+  const msg = [ok && `Added ${ok} run${ok > 1 ? 's' : ''}`, skip && `${skip} duplicate skipped`, bad.length && `Could not read: ${bad.join(', ')}`].filter(Boolean).join(' · ');
+  if (msg) toast(msg);
+}
+function addDemo() {
+  const c = [3.1786, 101.7062], pts = [], n = 240, t0 = Date.parse('2026-11-15T07:00:00+08:00');
+  for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2, w = 1 + .08 * Math.sin(a * 3);
+    pts.push([c[0] + .0029 * w * Math.sin(a), c[1] + .0021 * w * Math.cos(a), 62 + 6 * Math.sin(a * 2), t0 + i * 2700]); }
+  const r = makeRoute('Sample · Titiwangsa lake loop', pts); routes.push(r); ensureLayer(r); DB.put(r); refresh(); select(r.id);
+}
+
+/* ---------- detail & playback ---------- */
+const play = { on: false, started: false, f: 0, last: 0, runner: null, trail: null };
+const cur = () => routes.find(r => r.id === sel);
+
+function select(id) {
+  stopPlay(); clearPlayLayers();
+  sel = id; const r = cur(); if (!r) return closeDetail();
+  $('#detail').hidden = false;
+  $('#dName').textContent = r.name;
+  $('#dDate').textContent = fmtDate(r.date) + ' · ' + fmtTime(r.date) + ' start';
+  $('#dStats').innerHTML = [[(r.dist / 1000).toFixed(2), 'km'], [fmtT(r.mov ?? r.elapsed), 'moving time'], [fmtP(r.pace), 'avg pace /km'], [r.gain != null ? Math.round(r.gain) + ' m' : '–', 'elev gain']]
+    .map(([v, l]) => `<div><b class="num">${v}</b><span>${l}</span></div>`).join('');
+  markers.forEach(m => map.removeLayer(m));
+  markers = [
+    L.marker(r.ll[0], { icon: L.divIcon({ className: '', html: '<div class="pin" style="background:#3ddc97"></div>', iconSize: [14, 14] }), interactive: false }).addTo(map),
+    L.marker(r.ll.at(-1), { icon: L.divIcon({ className: '', html: '<div class="pin" style="background:#e84855"></div>', iconSize: [14, 14] }), interactive: false }).addTo(map)
+  ];
+  map.fitBounds(layers[id].getBounds(), { padding: [50, 50], paddingBottomRight: [0, 0] });
+  play.f = 0; $('#scrub').value = 0; drawElev();
+  $('#noTime').hidden = r.pts[0][3] != null;
+  refresh();
+}
+function closeDetail() { stopPlay(); clearPlayLayers(); sel = null; $('#detail').hidden = true; markers.forEach(m => map.removeLayer(m)); markers = []; refresh(); }
+
+function idxAt(r, D) { let lo = 0, hi = r.cum.length - 1; while (lo < hi - 1) { const m = (lo + hi) >> 1; if (r.cum[m] <= D) lo = m; else hi = m; } return lo; }
+function posAt(r, D) {
+  D = Math.max(0, Math.min(r.dist, D)); const i = idxAt(r, D), j = Math.min(i + 1, r.pts.length - 1);
+  const seg = r.cum[j] - r.cum[i], k = seg ? (D - r.cum[i]) / seg : 0, a = r.pts[i], b = r.pts[j];
+  const lerp = (x, y) => x == null || y == null ? (x ?? y) : x + (y - x) * k;
+  return { i, ll: L.latLng(lerp(a[0], b[0]), lerp(a[1], b[1])), t: lerp(a[3], b[3]) };
+}
+function clearPlayLayers() { if (play.runner) map.removeLayer(play.runner); if (play.trail) map.removeLayer(play.trail); play.runner = play.trail = null; play.started = false; $('#hud').classList.remove('show'); }
+function setF(f, pan) {
+  const r = cur(); if (!r) return;
+  play.f = Math.max(0, Math.min(1, f));
+  const D = play.f * r.dist, p = posAt(r, D);
+  if (!play.started) {
+    play.started = true; styleAll();
+    play.trail = L.polyline([], { color: r.color, weight: 7, opacity: 1, lineCap: 'round' }).addTo(map);
+    play.runner = L.marker(p.ll, { icon: L.divIcon({ className: 'runner', html: RUNNER, iconSize: [48, 56], iconAnchor: [24, 52] }), interactive: false, zIndexOffset: 1000 }).addTo(map);
+    play.prevLng = p.ll.lng;
+    $('#hud').classList.add('show');
+  }
+  play.runner.setLatLng(p.ll);
+  const el = play.runner.getElement(), rf = el && el.querySelector('.rf');
+  if (rf) {
+    rf.classList.toggle('idle', !play.on);
+    const dx = p.ll.lng - play.prevLng;
+    if (Math.abs(dx) > 1e-6) { rf.classList.toggle('flip', dx < 0); play.prevLng = p.ll.lng; }
+  }
+  play.trail.setLatLngs(r.ll.slice(0, p.i + 1).concat([p.ll]));
+  $('#hD').textContent = (D / 1000).toFixed(2);
+  $('#hT').textContent = p.t != null && r.pts[0][3] != null ? fmtT((p.t - r.pts[0][3]) / 1000) : '~' + fmtT(D * 0.36);
+  const back = posAt(r, D - 300), dd = D - Math.max(0, D - 300);
+  $('#hP').textContent = p.t != null && back.t != null && dd > 50 ? fmtP((p.t - back.t) / 1000 / (dd / 1000)) : '–';
+  $('#scrub').value = Math.round(play.f * 1000);
+  if (pan && $('#follow').checked) map.panTo(p.ll, { animate: false });
+  drawElev();
+}
+function tick(now) {
+  if (!play.on) return;
+  const dt = (now - play.last) / 1000; play.last = now;
+  setF(play.f + dt / +$('#speed').value, true);
+  if (play.f >= 1) return stopPlay();
+  requestAnimationFrame(tick);
+}
+function startPlay() {
+  if (!cur()) return; if (play.f >= 1) play.f = 0;
+  play.on = true; play.last = performance.now();
+  setF(play.f);
+  if (innerWidth <= 820) scrollTo({ top: 0, behavior: 'smooth' });
+  if ($('#follow').checked) map.setView(play.runner.getLatLng(), Math.max(map.getZoom(), 16), { animate: true });
+  $('#pIco').innerHTML = '<path d="M4 2h4v14H4zM11 2h4v14h-4z" fill="#fff"/>'; $('#pBtn').setAttribute('aria-label', 'Pause');
+  requestAnimationFrame(tick);
+}
+function stopPlay() { play.on = false; const el = play.runner && play.runner.getElement(); el && el.querySelector('.rf') && el.querySelector('.rf').classList.add('idle'); $('#pIco').innerHTML = '<path d="M4 2l12 7-12 7z" fill="#fff"/>'; $('#pBtn').setAttribute('aria-label', 'Play'); }
+
+/* ---------- elevation chart ---------- */
+const cv = $('#elev');
+function drawElev() {
+  const r = cur(); if (!r) return;
+  const W = cv.clientWidth, H = cv.clientHeight, dpr = devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+  const es = r.pts.map(q => q[2]);
+  const has = es.some(e => e != null); $('#noEle').hidden = has; if (!has) return;
+  const v = es.filter(e => e != null), mn = Math.min(...v), mx = Math.max(...v), rg = Math.max(mx - mn, 10);
+  const X = i => r.cum[i] / r.dist * W, Y = e => H - 16 - ((e - mn) / rg) * (H - 26);
+  const grd = g.createLinearGradient(0, 0, 0, H); grd.addColorStop(0, r.color + 'aa'); grd.addColorStop(1, r.color + '08');
+  g.beginPath(); g.moveTo(0, H); let lastE = v[0];
+  const step = Math.max(1, Math.floor(r.pts.length / (W * 2)));
+  for (let i = 0; i < r.pts.length; i += step) { if (es[i] != null) lastE = es[i]; g.lineTo(X(i), Y(lastE)); }
+  g.lineTo(W, H); g.closePath(); g.fillStyle = grd; g.fill();
+  g.fillStyle = '#8d93a0'; g.font = '12px Barlow'; g.fillText(Math.round(mx) + ' m', 4, 12); g.fillText(Math.round(mn) + ' m', 4, H - 3);
+  if (play.started) { const x = play.f * W; g.fillStyle = '#fff'; g.fillRect(x - 1, 0, 2, H); }
+}
+new ResizeObserver(drawElev).observe($('#fig'));
+let dragging = false;
+const scrubFromChart = e => { const b = cv.getBoundingClientRect(); stopPlay(); setF((e.clientX - b.left) / b.width, true); };
+$('#fig').addEventListener('pointerdown', e => { dragging = true; $('#fig').setPointerCapture(e.pointerId); scrubFromChart(e); });
+$('#fig').addEventListener('pointermove', e => dragging && scrubFromChart(e));
+$('#fig').addEventListener('pointerup', () => dragging = false);
+
+/* ---------- events ---------- */
+$('#file').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, () => drop.classList.remove('over')));
+drop.addEventListener('drop', e => { e.preventDefault(); addFiles([...e.dataTransfer.files]); });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => { e.preventDefault(); if (!drop.contains(e.target)) addFiles([...e.dataTransfer.files]); });
+$('#list').addEventListener('click', e => {
+  if (e.target.id === 'demo') return addDemo();
+  const g = e.target.closest('[data-go]');
+  if (g) { e.stopPropagation(); select(g.dataset.go); setTimeout(startPlay, 450); if (innerWidth <= 820) scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  const d = e.target.closest('[data-del]');
+  if (d) { e.stopPropagation(); const id = d.dataset.del; if (sel === id) closeDetail();
+    map.removeLayer(layers[id]); delete layers[id]; routes = routes.filter(r => r.id !== id); DB.del(id); refresh(); toast('Run deleted'); return; }
+  const li = e.target.closest('li[data-id]'); if (li) select(li.dataset.id);
+});
+$('#q').addEventListener('input', renderList);
+$('#sort').addEventListener('change', () => { pref('sort', $('#sort').value); renderList(); });
+$('#tiles').addEventListener('click', e => e.target.dataset.t && setTile(e.target.dataset.t));
+$('#mode').addEventListener('click', e => e.target.dataset.m && setMode(e.target.dataset.m));
+$('#fit').addEventListener('click', () => { if (sel) closeDetail(); fitAll(); });
+$('#dClose').addEventListener('click', closeDetail);
+$('#pBtn').addEventListener('click', () => play.on ? stopPlay() : startPlay());
+$('#scrub').addEventListener('input', e => { stopPlay(); setF(e.target.value / 1000, true); });
+$('#dName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+$('#dName').addEventListener('blur', e => { const r = cur(); const n = e.target.textContent.trim(); if (r && n && n !== r.name) { r.name = n; DB.put(r); renderList(); } else if (r) e.target.textContent = r.name; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel) closeDetail(); if (e.key === ' ' && sel && !/INPUT|SELECT|H2/.test(document.activeElement.tagName)) { e.preventDefault(); play.on ? stopPlay() : startPlay(); } });
+
+/* ---------- boot ---------- */
+setTile(pref('tile') || 'm');
+setMode(pref('mode') || 'color');
+if (pref('sort')) $('#sort').value = pref('sort');
+refresh();
+DB.open().then(() => DB.all()).then(saved => {
+  for (const s of saved) { try { const r = prep(s); routes.push(r); ensureLayer(r); } catch (e) {} }
+  if (routes.length) { refresh(); fitAll(); }
+});
+}
+</script>
+</body>
+</html>
